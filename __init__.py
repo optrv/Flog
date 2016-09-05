@@ -8,18 +8,11 @@ from flog import controllers, models
 
 config = ConfigParser.ConfigParser()
 config.read(os.path.join(app.root_path, '../flog.conf'))
-database = os.path.join(app.root_path, config.get('PATH', 'DATABASE'))
-secret_key = config.get('AUTH', 'SECRET_KEY')
-username = config.get('AUTH', 'USERNAME')
-password = config.get('AUTH', 'PASSWORD')
-debug = config.get('ETC', 'DEBUG')
-upload_folder = config.get('PATH', 'UPLOAD_FOLDER')
-
-app.config.update(DATABASE = database,
-                  SECRET_KEY = secret_key,
-                  USERNAME = username,
-                  PASSWORD = password,
-                  DEBUG = debug,
-                  UPLOAD_FOLDER = upload_folder,
-                  ALLOWED_EXTENSIONS = set(['mp3','jpg','jpeg','gif','png'])
+app.config.update(DATABASE = os.path.join(app.root_path, config.get('PATH', 'DATABASE')),
+                  SECRET_KEY = config.get('AUTH', 'SECRET_KEY'),
+                  USERNAME = config.get('AUTH', 'USERNAME'),
+                  PASSWORD = config.get('AUTH', 'PASSWORD'),
+                  DEBUG = config.get('ETC', 'DEBUG'),
+                  UPLOAD_FOLDER = config.get('PATH', 'UPLOAD_FOLDER'),
+                  ALLOWED_EXTENSIONS = set(['mp3','jpg','jpeg','gif','png']),
                   )
