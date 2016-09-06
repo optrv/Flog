@@ -1,1 +1,1 @@
-from models import init_db, get_db, check_db
+from models import get_from_db, add_to_db

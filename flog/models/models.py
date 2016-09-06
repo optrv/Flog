@@ -1,22 +1,7 @@
-from flog import app
-import os
-import ConfigParser
-import sqlite3
+from flog.configs.conf import database
 from flask import g
-
-config = ConfigParser.ConfigParser()
-config.read(os.path.join(app.root_path, '../flog.conf'))
-database = os.path.join(app.root_path, config.get('PATH', 'DATABASE'))
-secret_key = config.get('AUTH', 'SECRET_KEY')
-username = config.get('AUTH', 'USERNAME')
-password = config.get('AUTH', 'PASSWORD')
-debug = config.get('ETC', 'DEBUG')
-
-app.config.update(DATABASE = database,
-                  SECRET_KEY = secret_key,
-                  USERNAME = username,
-                  PASSWORD = password,
-                  DEBUG = debug)
+import sqlite3
+import os
 
 def connect_db():
     """
@@ -30,11 +15,10 @@ def init_db():
     """
     Create the new database by schema.sql
     """
-    with app.app_context():
-        db = get_db()
-        with app.open_resource('models/schema.sql', mode='r') as s:
-            db.cursor().executescript(s.read())
-        db.commit()
+    db = get_db()
+    with open(os.path.dirname(database) + '/schema.sql', mode = 'r') as s:
+        db.cursor().executescript(s.read())
+    db.commit()
 
 def get_db():
     """
@@ -44,9 +28,28 @@ def get_db():
         g.sqlite_db = connect_db()
     return g.sqlite_db
 
+
 def check_db():
     """
     Check if db-file is exist
     """
     if not os.path.exists(database):
         init_db()
+
+def get_from_db():
+    """
+    Get the data from DB
+    """
+    check_db()
+    db = get_db()
+    cur = db.execute('SELECT title, text, file FROM posts ORDER BY id DESC')
+    posts = cur.fetchall()
+    return posts
+
+def add_to_db(title, text, file):
+    """
+    Add the data to DB
+    """
+    db = get_db()
+    db.execute('INSERT INTO posts (title, text, file) VALUES (?, ?, ?)',[title, text, file])
+    db.commit()

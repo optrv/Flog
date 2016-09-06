@@ -1,44 +1,48 @@
-from flog import app
 from flask import render_template, request, session, url_for, redirect, flash
-from ..models import init_db, get_db, check_db
+from flog.models import get_from_db, add_to_db
+from werkzeug.utils import secure_filename
+from flog.configs.conf import username, password, allowed_extensions, upload_folder
+import os
 
-@app.route('/login', methods=['GET', 'POST'])
 def login():
     error = None
     if request.method == 'POST':
-        if request.form['username'] != app.config['USERNAME'] or \
-        request.form['password'] != app.config['PASSWORD']:
+        if (request.form['username'] != username or
+        request.form['password'] != password):
             error = 'Incorrect login and/or password!'
         else:
             session['logged_in'] = True
             flash('You were logged in!')
             return redirect(url_for('show_posts'))
-    return render_template('login.html', error=error)
+    return render_template('login.html', error = error)
 
-@app.route('/logout')
 def logout():
     session.pop('logged_in', None)
     flash('You were logged out!')
     return redirect(url_for('show_posts'))
 
-@app.route('/')
 def show_posts():
-    check_db()
-    db = get_db()
-    cur = db.execute('SELECT title, text FROM posts ORDER BY id DESC')
-    posts = cur.fetchall()
-    return render_template('show_posts.html', posts=posts)
+    return render_template('show_posts.html', posts = get_from_db())
 
-@app.route('/add', methods=['POST'])
 def add_post():
     if not session.get('logged_in'):
         flash('You must login!')
         return redirect(url_for('show_posts'))
-    db = get_db()
     if request.form['title'] == "" and request.form['text'] == "":
         flash('Fill the data!')
         return redirect(url_for('show_posts'))
-    db.execute('INSERT INTO posts (title, text) VALUES (?, ?)',[request.form['title'], request.form['text']])
-    db.commit()
+    files = request.files['file']
+    if not files.filename == "":
+        if files.filename.rsplit('.', 1)[1] in allowed_extensions:
+            filename = secure_filename(files.filename)
+            if filename.rsplit('.', 1)[1] != 'mp3':
+                subfolder = 'image/'
+            else:
+                subfolder = 'music/'
+            files.save(os.path.join(upload_folder, subfolder, files.filename))
+        else:
+            flash('Please, choose: mp3 / jpg / jpeg / gif / png!')
+            files.filename = None
+    add_to_db(request.form['title'], request.form['text'], files.filename)
     flash('New post was successfully posted')
     return redirect(url_for('show_posts'))
