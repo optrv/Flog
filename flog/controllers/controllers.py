@@ -1,14 +1,10 @@
 from flask import render_template, request, session, url_for, redirect, flash
-from flog.models import get_from_db, add_to_db
-from werkzeug.utils import secure_filename
-from flog.configs.conf import username, password, allowed_extensions, upload_folder
-import os
+from flog.models import get_from_db, add_to_db, save_file, check_login
 
 def login():
     error = None
     if request.method == 'POST':
-        if (request.form['username'] != username or
-        request.form['password'] != password):
+        if not check_login(request.form['username'], request.form['password']):
             error = 'Incorrect login and/or password!'
         else:
             session['logged_in'] = True
@@ -33,13 +29,8 @@ def add_post():
         return redirect(url_for('show_posts'))
     files = request.files['file']
     if not files.filename == "":
-        if files.filename.rsplit('.', 1)[1] in allowed_extensions:
-            filename = secure_filename(files.filename)
-            if filename.rsplit('.', 1)[1] != 'mp3':
-                subfolder = 'image/'
-            else:
-                subfolder = 'music/'
-            files.save(os.path.join(upload_folder, subfolder, files.filename))
+        if save_file(files):
+            pass
         else:
             flash('Please, choose: mp3 / jpg / jpeg / gif / png!')
             files.filename = None
