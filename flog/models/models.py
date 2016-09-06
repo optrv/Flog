@@ -1,5 +1,6 @@
-from flog.configs.conf import database
+from flog.configs.conf import database, upload_folder, allowed_extensions, username, password
 from flask import g
+from werkzeug.utils import secure_filename
 import sqlite3
 import os
 
@@ -22,12 +23,14 @@ def init_db():
 
 def get_db():
     """
-    Create the database and connection with the database
+    Create the connection with the database
     """
-    if not hasattr(g, 'sqlite_db'):
+    try:
+        g.sqlite_db
+    except AttributeError:
         g.sqlite_db = connect_db()
-    return g.sqlite_db
-
+    finally:
+        return g.sqlite_db
 
 def check_db():
     """
@@ -53,3 +56,21 @@ def add_to_db(title, text, file):
     db = get_db()
     db.execute('INSERT INTO posts (title, text, file) VALUES (?, ?, ?)',[title, text, file])
     db.commit()
+
+def save_file(files):
+    if files.filename.rsplit('.', 1)[1] in allowed_extensions:
+        filename = secure_filename(files.filename)
+        if filename.rsplit('.', 1)[1] != 'mp3':
+            subfolder = 'image/'
+        else:
+            subfolder = 'music/'
+        files.save(os.path.join(upload_folder, subfolder, files.filename))
+        return True
+    else:
+        return False
+
+def check_login(username, password):
+    if (username != username or password != password):
+        return False
+    else:
+        return True
