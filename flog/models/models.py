@@ -1,22 +1,9 @@
-from flog import app
-import os
-import ConfigParser
-import sqlite3
+from flog.configs.conf import database, upload_folder, allowed_extensions, username, password
 from flask import g
-
-config = ConfigParser.ConfigParser()
-config.read(os.path.join(app.root_path, '../flog.conf'))
-database = os.path.join(app.root_path, config.get('PATH', 'DATABASE'))
-secret_key = config.get('AUTH', 'SECRET_KEY')
-username = config.get('AUTH', 'USERNAME')
-password = config.get('AUTH', 'PASSWORD')
-debug = config.get('ETC', 'DEBUG')
-
-app.config.update(DATABASE = database,
-                  SECRET_KEY = secret_key,
-                  USERNAME = username,
-                  PASSWORD = password,
-                  DEBUG = debug)
+from werkzeug.utils import secure_filename
+import sqlite3
+import os
+from flog.tools.image_resizer import image_resizer
 
 def connect_db():
     """
@@ -30,19 +17,21 @@ def init_db():
     """
     Create the new database by schema.sql
     """
-    with app.app_context():
-        db = get_db()
-        with app.open_resource('models/schema.sql', mode='r') as s:
-            db.cursor().executescript(s.read())
-        db.commit()
+    db = get_db()
+    with open(os.path.dirname(database) + '/schema.sql', mode = 'r') as s:
+        db.cursor().executescript(s.read())
+    db.commit()
 
 def get_db():
     """
-    Create the database and connection with the database
+    Create the connection with the database
     """
-    if not hasattr(g, 'sqlite_db'):
+    try:
+        g.sqlite_db
+    except AttributeError:
         g.sqlite_db = connect_db()
-    return g.sqlite_db
+    finally:
+        return g.sqlite_db
 
 def check_db():
     """
@@ -50,3 +39,40 @@ def check_db():
     """
     if not os.path.exists(database):
         init_db()
+
+def get_from_db():
+    """
+    Get the data from DB
+    """
+    check_db()
+    db = get_db()
+    cur = db.execute('SELECT title, text, file FROM posts ORDER BY id DESC')
+    posts = cur.fetchall()
+    return posts
+
+def add_to_db(title, text, file):
+    """
+    Add the data to DB
+    """
+    db = get_db()
+    db.execute('INSERT INTO posts (title, text, file) VALUES (?, ?, ?)',[title, text, file])
+    db.commit()
+
+def save_file(files):
+    if files.filename.rsplit('.', 1)[1] in allowed_extensions:
+        filename = secure_filename(files.filename)
+        if filename.rsplit('.', 1)[1] != 'mp3':
+            subfolder = 'image/'
+            image_resizer(files, filename, subfolder)
+        else:
+            subfolder = 'music/'
+            files.save(os.path.join(upload_folder, subfolder, files.filename))
+        return True
+    else:
+        return False
+
+def check_login(username, password):
+    if (username != username or password != password):
+        return False
+    else:
+        return True
