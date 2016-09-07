@@ -3,6 +3,7 @@ from flask import g
 from werkzeug.utils import secure_filename
 import sqlite3
 import os
+from flog.tools.image_resizer import image_resizer
 
 def connect_db():
     """
@@ -62,9 +63,10 @@ def save_file(files):
         filename = secure_filename(files.filename)
         if filename.rsplit('.', 1)[1] != 'mp3':
             subfolder = 'image/'
+            image_resizer(files, filename, subfolder)
         else:
             subfolder = 'music/'
-        files.save(os.path.join(upload_folder, subfolder, files.filename))
+            files.save(os.path.join(upload_folder, subfolder, files.filename))
         return True
     else:
         return False
