@@ -1,3 +1,3 @@
-# Flog 0.77
+# Flog 0.78
 
 The next first ver. of Flask Blog.
