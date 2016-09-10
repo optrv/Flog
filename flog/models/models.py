@@ -3,7 +3,8 @@ from flask import g
 from werkzeug.utils import secure_filename
 import sqlite3
 import os
-from flog.tools.image_resizer import image_resizer
+from flog.services.image_resizer.image_resizer import image_resizer
+from datetime import datetime
 
 def connect_db():
     """
@@ -46,16 +47,20 @@ def get_from_db():
     """
     check_db()
     db = get_db()
-    cur = db.execute('SELECT title, text, file FROM posts ORDER BY id DESC')
+    cur = db.execute('SELECT title, text, filename, date_time FROM posts ORDER BY id DESC')
     posts = cur.fetchall()
     return posts
 
-def add_to_db(title, text, file):
+def add_to_db(title, text, filename):
     """
     Add the data to DB
     """
+    dates = str(datetime.date(datetime.now()))
+    times = str(datetime.time(datetime.now()))
+    date_time = dates + ' ' + times[:8]
     db = get_db()
-    db.execute('INSERT INTO posts (title, text, file) VALUES (?, ?, ?)',[title, text, file])
+    db.execute('INSERT INTO posts (title, text, filename, date_time) '
+               'VALUES (?, ?, ?, ?)',[title, text, filename, date_time])
     db.commit()
 
 def save_file(files):
