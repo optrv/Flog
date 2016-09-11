@@ -4,6 +4,7 @@ from werkzeug.utils import secure_filename
 import sqlite3
 import os
 from flog.services.image_resizer.image_resizer import image_resizer
+from flog.services.mp3_decoder.mp3_decoder import mp3_decoder
 from datetime import datetime
 
 def connect_db():
@@ -71,7 +72,7 @@ def save_file(files):
             image_resizer(files, filename, subfolder)
         else:
             subfolder = 'music/'
-            files.save(os.path.join(upload_folder, subfolder, files.filename))
+            mp3_decoder(files, filename, subfolder)
         return True
     else:
         return False
