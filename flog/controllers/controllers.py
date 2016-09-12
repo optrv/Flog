@@ -27,7 +27,7 @@ def add_post():
     if request.form['title'] == "" and request.form['text'] == "":
         flash('Fill the data!')
         return redirect(url_for('show_posts'))
-    files = request.files['file']
+    files = request.files['filename']
     if not files.filename == "":
         if save_file(files):
             pass

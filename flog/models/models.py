@@ -1,9 +1,11 @@
-from flog.configs.conf import database, upload_folder, allowed_extensions, username, password
-from flask import g
-from werkzeug.utils import secure_filename
-import sqlite3
 import os
-from flog.tools.image_resizer import image_resizer
+import sqlite3
+from datetime import datetime
+from flask import g
+from flog.configs.conf import database, upload_folder, allowed_extensions, username, password
+from flog.services.image_resizer.image_resizer import image_resizer
+from flog.services.mp3_decoder.mp3_decoder import mp3_decoder
+from werkzeug.utils import secure_filename
 
 def connect_db():
     """
@@ -46,16 +48,18 @@ def get_from_db():
     """
     check_db()
     db = get_db()
-    cur = db.execute('SELECT title, text, file FROM posts ORDER BY id DESC')
+    cur = db.execute('SELECT title, text, filename, date_time FROM posts ORDER BY id DESC')
     posts = cur.fetchall()
     return posts
 
-def add_to_db(title, text, file):
+def add_to_db(title, text, filename):
     """
     Add the data to DB
     """
+    date_time = datetime.now().strftime("%Y/%m/%d %H:%M:%S")
     db = get_db()
-    db.execute('INSERT INTO posts (title, text, file) VALUES (?, ?, ?)',[title, text, file])
+    db.execute('INSERT INTO posts (title, text, filename, date_time) '
+               'VALUES (?, ?, ?, ?)',[title, text, filename, date_time])
     db.commit()
 
 def save_file(files):
@@ -66,13 +70,13 @@ def save_file(files):
             image_resizer(files, filename, subfolder)
         else:
             subfolder = 'music/'
-            files.save(os.path.join(upload_folder, subfolder, files.filename))
+            mp3_decoder(files, filename, subfolder)
         return True
     else:
         return False
 
-def check_login(username, password):
-    if (username != username or password != password):
+def check_login(user_name, pass_word):
+    if (user_name != username or pass_word != password):
         return False
     else:
         return True
