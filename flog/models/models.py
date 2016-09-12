@@ -1,11 +1,11 @@
-import sqlite3
 import os
-from flog.configs.conf import database, upload_folder, allowed_extensions, username, password
+import sqlite3
+from datetime import datetime
 from flask import g
-from werkzeug.utils import secure_filename
+from flog.configs.conf import database, upload_folder, allowed_extensions, username, password
 from flog.services.image_resizer.image_resizer import image_resizer
 from flog.services.mp3_decoder.mp3_decoder import mp3_decoder
-from datetime import datetime
+from werkzeug.utils import secure_filename
 
 def connect_db():
     """
