@@ -1,8 +1,8 @@
+import sqlite3
+import os
 from flog.configs.conf import database, upload_folder, allowed_extensions, username, password
 from flask import g
 from werkzeug.utils import secure_filename
-import sqlite3
-import os
 from flog.services.image_resizer.image_resizer import image_resizer
 from flog.services.mp3_decoder.mp3_decoder import mp3_decoder
 from datetime import datetime
@@ -56,9 +56,7 @@ def add_to_db(title, text, filename):
     """
     Add the data to DB
     """
-    dates = str(datetime.date(datetime.now()))
-    times = str(datetime.time(datetime.now()))
-    date_time = dates + ' ' + times[:8]
+    date_time = datetime.now().strftime("%Y/%m/%d %H:%M:%S")
     db = get_db()
     db.execute('INSERT INTO posts (title, text, filename, date_time) '
                'VALUES (?, ?, ?, ?)',[title, text, filename, date_time])
@@ -77,8 +75,8 @@ def save_file(files):
     else:
         return False
 
-def check_login(username, password):
-    if (username != username or password != password):
+def check_login(user_name, pass_word):
+    if (user_name != username or pass_word != password):
         return False
     else:
         return True
