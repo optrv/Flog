@@ -5,7 +5,6 @@ from flask import g
 from flog.configs.conf import database, upload_folder, allowed_extensions, username, password
 from flog.services.image_resizer.image_resizer import image_resizer
 from flog.services.mp3_decoder.mp3_decoder import mp3_decoder
-from werkzeug.utils import secure_filename
 
 def connect_db():
     """
