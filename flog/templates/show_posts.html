@@ -4,7 +4,7 @@
     <h3>Title: </h3><input type=text size=50 name=title>
     <div class="form-group">
         <h3>Text: </h3>
-        <textarea class="form-control" name=text type=text rows="3" id="comment"></textarea>
+        <textarea class="form-control" name=text type=text cols="3" rows="3" id="comment"></textarea>
     </div>
 
     <input type=file name=filename>
@@ -19,10 +19,11 @@
     <strong><h2>{{ post.title }}</h2></strong>{{ post.date_time }}<br><br><strong>{{ post.text|safe }}</strong><br>
     {% if post.filename %}
         {% if not post.filename.endswith("mp3") %}
-            <img src="/static/upload/image/{{post.filename}}">
+            <img src="/static/upload/image/{{post.filesave}}">
         {% else %}
+            {{ post.filename }}<br>
             <audio controls>
-            <source src="/static/upload/music/{{post.filename}}" type="audio/mpeg">
+            <source src="/static/upload/music/{{post.filesave}}" type="audio/mpeg">
         {% endif %}
     {% endif %}
 </div>

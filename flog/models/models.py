@@ -5,7 +5,6 @@ from flask import g
 from flog.configs.conf import database, upload_folder, allowed_extensions, username, password
 from flog.services.image_resizer.image_resizer import image_resizer
 from flog.services.mp3_decoder.mp3_decoder import mp3_decoder
-from werkzeug.utils import secure_filename
 
 def connect_db():
     """
@@ -48,34 +47,47 @@ def get_from_db():
     """
     check_db()
     db = get_db()
-    cur = db.execute('SELECT title, text, filename, date_time FROM posts ORDER BY id DESC')
+    cur = db.execute('SELECT date_time, title, text, filename, filesave FROM posts ORDER BY id DESC')
     posts = cur.fetchall()
+    db.close()
     return posts
 
-def add_to_db(title, text, filename):
+def add_to_db(date_time, title, text, filename, filesave):
     """
     Add the data to DB
     """
-    date_time = datetime.now().strftime("%Y/%m/%d %H:%M:%S")
+    if date_time is None:
+        date_time = datetime.now().strftime("%Y/%m/%d %H:%M:%S")
     db = get_db()
-    db.execute('INSERT INTO posts (title, text, filename, date_time) '
-               'VALUES (?, ?, ?, ?)',[title, text, filename, date_time])
+    db.execute('INSERT INTO posts (date_time, title, text, filename, filesave) '
+               'VALUES (?, ?, ?, ?, ?)',[date_time, title, text, filename, filesave])
     db.commit()
+    db.close()
 
 def save_file(files):
+    """
+    Save the file
+    """
     if files.filename.rsplit('.', 1)[1] in allowed_extensions:
-        filename = secure_filename(files.filename)
+        filename = files.filename
+        date_time = datetime.now()
+        hashname = date_time.strftime("%Y%m%d%H%M%S") + '.' + filename.rsplit('.', 1)[1]
         if filename.rsplit('.', 1)[1] != 'mp3':
+            filesave = 'image_' + hashname
             subfolder = 'image/'
-            image_resizer(files, filename, subfolder)
+            image_resizer(files, filesave, subfolder)
         else:
+            filesave = 'track_' + hashname
             subfolder = 'music/'
-            mp3_decoder(files, filename, subfolder)
-        return True
+            mp3_decoder(files, filesave, subfolder)
+        return filesave, date_time.strftime("%Y/%m/%d %H:%M:%S")
     else:
-        return False
+        return None, None
 
 def check_login(user_name, pass_word):
+    """
+    Check login/password
+    """
     if (user_name != username or pass_word != password):
         return False
     else:

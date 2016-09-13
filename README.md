@@ -1,14 +1,12 @@
-# Flog 0.78
+# Flog 0.79
 
 The next first ver. of Flask Blog.
 
 Changelog:
-date/time added
-'tools'-folder renamed to 'services'
-'file'-column & var renamed to 'filename'
-'file'-input name renamed to 'filename'
-mp3 decoder added:
-  pip install pydub
-  install ffmpeg-codecs - https://ffmpeg.org/
+"time-hashing" of the filenames added 
+Column 'filesave' added to db where 'time-hashed' filename stored
+Column 'filename' preserved original name of the file
+Template shows the original filename
+db.close() added
 
 
