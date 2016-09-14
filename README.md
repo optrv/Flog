@@ -2,6 +2,6 @@
 
 * ffmpeg is required! — https://ffmpeg.org/ *
 
-python setup.py install
-export FLASK_APP = run.py
-python run.py
+1. python setup.py install
+2. export FLASK_APP = run.py
+3. python run.py
