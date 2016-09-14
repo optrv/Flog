@@ -21,7 +21,7 @@
         {% if not post.filename.endswith("mp3") %}
             <img src="/static/upload/image/{{post.filesave}}">
         {% else %}
-            {{ post.filename }}<br>
+            {{ post.filename.replace('_', ' ').replace('  ',' & ') }}<br>
             <audio controls>
             <source src="/static/upload/music/{{post.filesave}}" type="audio/mpeg">
         {% endif %}
