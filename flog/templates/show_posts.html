@@ -6,14 +6,15 @@
         <h3>Text: </h3>
         <textarea class="form-control" name=text type=text cols="3" rows="3" id="comment"></textarea>
     </div>
-
+    {% if session['logged_in'] %}
     <input type=file name=filename>
-
-
+    {% endif %}
     <div class="container">
         <button type=submit class="btn btn-success">Post!</button>
     </div>
 </form><br>
+{{ pagination.info }}
+<p>{{ pagination.links }}</p>
 {% for post in posts %}
 <div class="alert alert-info">
     <strong><h2>{{ post.title }}</h2></strong>{{ post.date_time }}<br><br><strong>{{ post.text|safe }}</strong><br>
@@ -32,4 +33,5 @@
     <strong>The posts are absent, yet...;)</strong>
 </div>
 {% endfor %}
+{{ pagination.links }}
 {% endblock %}
