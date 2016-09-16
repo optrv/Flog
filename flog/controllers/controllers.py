@@ -1,10 +1,7 @@
 from flask import render_template, request, session, url_for, redirect, flash
-from flog.models import get_from_db, add_to_db, save_file, check_login
+from flog.models import get_from_db, add_to_db, save_file, check_login, posts_page
 
 def login():
-    """
-    Check
-    """
     error = None
     if request.method == 'POST':
         if not check_login(request.form['username'], request.form['password']):
@@ -21,10 +18,13 @@ def logout():
     return redirect(url_for('show_posts'))
 
 def show_posts():
-    return render_template('show_posts.html', posts = get_from_db())
+    page = request.args.get('page', type = int, default = 1)
+    posts = get_from_db()
+    pagination, posts = posts_page(page, posts)
+    return render_template('show_posts.html', posts = posts, pagination = pagination)
 
 def add_post():
-    filesave, date_time = None, None
+    filename, filesave, date_time = None, None, None
     if not session.get('logged_in'):
         flash('You must login!')
         return redirect(url_for('show_posts'))
@@ -33,12 +33,12 @@ def add_post():
         return redirect(url_for('show_posts'))
     files = request.files['filename']
     if not files.filename == "":
-        filesave, date_time = save_file(files)
-        if filesave:
+        filename, filesave, date_time = save_file(files)
+        if filename:
             pass
         else:
             flash('Please, choose: mp3 / jpg / jpeg / gif / png!')
-            files.filename = None
-    add_to_db(date_time, request.form['title'], request.form['text'], files.filename, filesave)
+            filename = None
+    add_to_db(date_time, request.form['title'], request.form['text'], filename, filesave)
     flash('New post was successfully posted')
     return redirect(url_for('show_posts'))
