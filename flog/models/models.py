@@ -2,10 +2,13 @@ import os
 import sqlite3
 from datetime import datetime
 from flask import g
-from flog.configs.conf import database, upload_folder, allowed_extensions, username, password
+from flask_paginate import Pagination
+from flog.configs.conf import database, upload_folder, allowed_extensions, username, password, posts_per_page
 from flog.services.image_resizer.image_resizer import image_resizer
 from flog.services.mp3_decoder.mp3_decoder import mp3_decoder
 from werkzeug.utils import secure_filename
+
+posts_per_page = int(posts_per_page)
 
 def connect_db():
     """
@@ -81,9 +84,9 @@ def save_file(files):
             filesave = 'track_' + hashname
             subfolder = 'music/'
             mp3_decoder(files, filesave, subfolder)
-        return filesave, date_time.strftime("%Y/%m/%d %H:%M:%S")
+        return filename, filesave, date_time.strftime("%Y/%m/%d %H:%M:%S")
     else:
-        return None, None
+        return None, None, None
 
 def check_login(user_name, pass_word):
     """
@@ -93,3 +96,12 @@ def check_login(user_name, pass_word):
         return False
     else:
         return True
+
+def posts_page(page, posts):
+    """
+    Makes pagination of the posts
+    """
+    pagination = Pagination(page = page, per_page = posts_per_page, total = len(posts))
+    i = (page - 1) * posts_per_page
+    posts = posts[i:i + posts_per_page]
+    return pagination, posts
