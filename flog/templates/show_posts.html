@@ -1,30 +1,29 @@
 {% extends "index.html" %}
 {% block body %}
 <form action="{{ url_for('add_post') }}" method=post enctype=multipart/form-data>
-    <h3>Title: </h3><input type=text size=50 name=title>
     <div class="form-group">
-        <h3>Text: </h3>
-        <textarea class="form-control" name=text type=text cols="3" rows="3" id="comment"></textarea>
-    </div>
+    <input class="form-control" placeholder="Input Title..." type=text name=title>
+        <textarea class="form-control" placeholder="Input Text..." name=text type=text id="comment"></textarea>
     {% if session['logged_in'] %}
-    <input type=file name=filename>
+    <input type=file name=filename></div>
+    {% else %}
+    <input type=file name=filename disabled></div>
     {% endif %}
-    <div class="container">
-        <button type=submit class="btn btn-success">Post!</button>
-    </div>
-</form><br>
+    <button type=submit class="btn btn-success">Post!</button>
+</form>
 {{ pagination.info }}
-<p>{{ pagination.links }}</p>
+{{ pagination.links }}
 {% for post in posts %}
 <div class="alert alert-info">
-    <strong><h2>{{ post.title }}</h2></strong>{{ post.date_time }}<br><br><strong>{{ post.text|safe }}</strong><br>
+    <p>{{ post.date_time }}</p>
+    <strong><h2>{{ post.title }}</h2>{{ post.text|safe }}</strong><br>
     {% if post.filename %}
         {% if not post.filename.endswith("mp3") %}
-            <img src="/static/upload/image/{{post.filesave}}">
+            <img class = "img-thumbnail" src="/static/upload/image/{{post.filesave}}">
         {% else %}
-            {{ post.filename.replace('_', ' ').replace('  ',' & ') }}<br>
+            <div class="img-thumbnail"><p2>{{ post.filename.replace('_', ' ').replace('  ',' & ') }}</p2><br>
             <audio controls>
-            <source src="/static/upload/music/{{post.filesave}}" type="audio/mpeg">
+            <source src="/static/upload/music/{{post.filesave}}" type="audio/mpeg"></div>
         {% endif %}
     {% endif %}
 </div>
