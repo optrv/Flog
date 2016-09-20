@@ -1,0 +1,36 @@
+{% extends "index.html" %}
+{% block body %}
+<form action="{{ url_for('add_post') }}" method=post enctype=multipart/form-data>
+    <div class="form-group">
+    <input class="form-control" placeholder="Input Title..." type=text name=title>
+        <textarea class="form-control" placeholder="Input Text..." name=text type=text id="comment"></textarea>
+    {% if session['logged_in'] %}
+    <input type=file name=filename></div>
+    {% else %}
+    <input type=file name=filename disabled></div>
+    {% endif %}
+    <button type=submit class="btn btn-success">Post!</button>
+</form>
+{{ pagination.info }}
+{{ pagination.links }}
+{% for post in posts %}
+<div class="alert alert-info">
+    <p>{{ post.date_time }}</p>
+    <strong><h2>{{ post.title }}</h2>{{ post.text|safe }}</strong><br>
+    {% if post.filename %}
+        {% if not post.filename.endswith("mp3") %}
+            <img class = "img-thumbnail" src="/static/upload/image/{{post.filesave}}">
+        {% else %}
+            <div class="img-thumbnail"><p2>{{ post.filename.replace('_', ' ').replace('  ',' & ') }}</p2><br>
+            <audio controls>
+            <source src="/static/upload/music/{{post.filesave}}" type="audio/mpeg"></div>
+        {% endif %}
+    {% endif %}
+</div>
+{% else %}
+<div class="alert alert-info">
+    <strong>The posts are absent, yet...;)</strong>
+</div>
+{% endfor %}
+{{ pagination.links }}
+{% endblock %}
