@@ -1,14 +1,13 @@
 import logging
 from functools import wraps
-from flog.configs.conf import log_name, log_file, log_format, log_level
+from flog.configs.conf import LOG_NAME, LOG_FILE, LOG_FORMAT, LOG_LEVEL
 
-log_format = log_format.replace('?','%')
-# logging.basicConfig(filename = log_file, level = log_level, format = log_format)
+log_format = LOG_FORMAT.replace('?','%')
 
 def logger():
-    logger = logging.getLogger(log_name)
-    file_handler = logging.FileHandler(log_file)
-    file_handler.setLevel(log_level)
+    logger = logging.getLogger(LOG_NAME)
+    file_handler = logging.FileHandler(LOG_FILE)
+    file_handler.setLevel(LOG_LEVEL)
     file_handler.setFormatter(logging.Formatter(log_format))
     logger.addHandler(file_handler)
     return logger
