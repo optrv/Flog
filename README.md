@@ -1,4 +1,5 @@
-# Flog 0.79: Flask Blog
+# Flog 0.80: Flask Blog
+With MySQL & SQLite support.
 
 ## ffmpeg is required! [https://ffmpeg.org/]
 Intallation of ffmpeg on UBUNTU:
@@ -14,6 +15,6 @@ Installation of ffmpeg on Windows:
 - Add [path]\ffmpeg\bin to system path
 
 ##
+0. virtualenv (optional)
 1. python setup.py install
-2. export FLASK_APP = run.py
 3. python run.py
