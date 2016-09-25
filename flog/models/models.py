@@ -1,11 +1,12 @@
 import os
+import unicodecsv as csv
 import sqlite3
 import MySQLdb
-from MySQLdb import escape_string as esc
+# from MySQLdb import escape_string as esc
 from datetime import datetime
 from flask import g
 from flask_paginate import Pagination
-from flog.configs.conf import (DATABASE, UPLOAD_FOLDER, ALLOWED_EXTENSIONS,
+from flog.configs.conf import (DATABASE, DB_DUMP, UPLOAD_FOLDER, ALLOWED_EXTENSIONS,
                                USERNAME, PASSWORD, POSTS_PER_PAGE, FORCE_SQLITE)
 from flog.services.image_resizer.image_resizer import image_resizer
 from flog.services.mp3_decoder.mp3_decoder import mp3_decoder
@@ -25,7 +26,7 @@ def connect_mysql():
 
 def connect_db():
     """
-    Connect with a database and use the sqlite3.Row-object
+    Connect to SQLite-db and use the sqlite3.Row-object
     """
     row = sqlite3.connect(DATABASE)
     row.row_factory = sqlite3.Row
@@ -33,7 +34,7 @@ def connect_db():
 
 def init_db():
     """
-    Create the new database by schema.sql
+    Create the new SQLite-db by schema.sql
     """
     db = get_db()
     with open(os.path.dirname(DATABASE) + '/schema.sql', mode = 'r') as s:
@@ -42,7 +43,7 @@ def init_db():
 
 def get_db():
     """
-    Create the connection with the database
+    Create the connection with the SQLite-db
     """
     try:
         g.sqlite_db
@@ -53,14 +54,15 @@ def get_db():
 
 def check_db():
     """
-    Check if db-file is exist
+    Check if SQLite-db-file is exist
     """
     if not os.path.exists(DATABASE):
         init_db()
 
 def get_from_db():
     """
-    Get the data from DB
+    Get the data from DB. MySQL is default db.
+    SQlite is emergency db or it can be the main db with 'force_sqlite = True'
     """
     sql_query = 'SELECT date_time, title, text, filename, filesave FROM posts ORDER BY id DESC'
     if not force_sqlite and connect_mysql():
@@ -70,14 +72,14 @@ def get_from_db():
         check_db()
         db = get_db()
         cur = db.execute(sql_query)
-
     posts = cur.fetchall()
     db.close()
     return posts
 
 def add_to_db(date_time, title, text, filename, filesave):
     """
-    Add the data to DB
+    Add the data to DB. MySQL is default db.
+    SQlite is emergency db or it can be the main db with 'force_sqlite = True'
     """
     if date_time is None:
         date_time = datetime.now().strftime("%Y/%m/%d %H:%M:%S")
@@ -91,6 +93,17 @@ def add_to_db(date_time, title, text, filename, filesave):
                     [date_time, title, text, filename, filesave])
     db.commit()
     db.close()
+    write_csv(date_time, title, text, filename, filesave)
+
+def write_csv(date_time, title, text, filename, filesave):
+    """
+    Append each added post to csv-file
+    """
+    posts = [date_time, title, text, filename, filesave]
+    fp = open(DB_DUMP, 'a')
+    file_csv = csv.writer(fp)
+    file_csv.writerow(posts)
+    fp.close()
 
 def save_file(files):
     """
