@@ -6,6 +6,7 @@ config = ConfigParser.ConfigParser()
 config.read(os.path.join(path,'flog.conf'))
 
 DATABASE = config.get('PATH', 'database')
+DB_DUMP = config.get('PATH', 'db_dump')
 UPLOAD_FOLDER = config.get('PATH', 'upload_folder')
 SECRET_KEY = config.get('AUTH', 'secret_key')
 USERNAME = config.get('AUTH', 'username')
