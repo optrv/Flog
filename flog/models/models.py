@@ -2,7 +2,6 @@ import os
 import unicodecsv as csv
 import sqlite3
 import MySQLdb
-# from MySQLdb import escape_string as esc
 from datetime import datetime
 from flask import g
 from flask_paginate import Pagination
@@ -37,7 +36,7 @@ def init_db():
     Create the new SQLite-db by schema.sql
     """
     db = get_db()
-    with open(os.path.dirname(DATABASE) + '/schema.sql', mode = 'r') as s:
+    with open(os.path.dirname(DATABASE) + '/schema_sqlite.sql', mode = 'r') as s:
         db.cursor().executescript(s.read())
     db.commit()
 
@@ -52,12 +51,13 @@ def get_db():
     finally:
         return g.sqlite_db
 
-def check_db():
+def check_db(db):
     """
     Check if SQLite-db-file is exist
     """
     if not os.path.exists(DATABASE):
         init_db()
+        read_dump(db)
 
 def get_from_db():
     """
@@ -72,9 +72,24 @@ def get_from_db():
         check_db()
         db = get_db()
         cur = db.execute(sql_query)
+        #read_dump(db)
     posts = cur.fetchall()
     db.close()
     return posts
+
+def read_dump(db):
+    try:
+        with open(DB_DUMP, 'rb') as dumpfile:
+            dump = csv.DictReader(dumpfile)
+            dump_rec = [(i['date_time'], i['title'], i['text'], i['filename'], i['filesave']) for i in dump]
+            db.executemany('INSERT INTO posts (date_time, title, text, filename, filesave) VALUES (?, ?, ?, ?, ?)',
+                           dump_rec)
+            db.commit()
+    except IOError:
+        rows = ['date_time', 'title', 'text', 'filename', 'filesave']
+        open_dump_file('w', rows)
+
+
 
 def add_to_db(date_time, title, text, filename, filesave):
     """
@@ -93,17 +108,29 @@ def add_to_db(date_time, title, text, filename, filesave):
                     [date_time, title, text, filename, filesave])
     db.commit()
     db.close()
-    write_csv(date_time, title, text, filename, filesave)
+    write_dump(date_time, title, text, filename, filesave)
 
-def write_csv(date_time, title, text, filename, filesave):
+def open_dump_file(mode, rows):
+    """
+    Open dump file
+    """
+    fp = open(DB_DUMP, mode)
+    file_csv = csv.writer(fp)
+    file_csv.writerow(rows)
+    fp.close()
+
+def write_dump(date_time, title, text, filename, filesave):
     """
     Append each added post to csv-file
     """
+    if not os.path.exists(DB_DUMP):
+        rows = ['date_time', 'title', 'text', 'filename', 'filesave']
+        open_dump_file('w', rows)
     posts = [date_time, title, text, filename, filesave]
-    fp = open(DB_DUMP, 'a')
-    file_csv = csv.writer(fp)
-    file_csv.writerow(posts)
-    fp.close()
+    # fp = open(DB_DUMP, 'a')
+    # file_csv = csv.writer(fp)
+    # file_csv.writerow(posts)
+    open_dump_file('a', posts)
 
 def save_file(files):
     """
