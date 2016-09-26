@@ -14,6 +14,6 @@ Installation of ffmpeg on Windows:
 - Add [path]\ffmpeg\bin to system path
 
 ##
+0. virtualenv (optional)
 1. python setup.py install
-2. export FLASK_APP = run.py
-3. python run.py
+2. python run.py
