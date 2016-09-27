@@ -2,3 +2,7 @@ recursive-include flog/templates *.html
 recursive-include flog/configs *.conf
 recursive-include flog/models/db *.*
 recursive-include flog/static/upload/image/watermark *.png
+recursive-include flog/static/css *.css
+recursive-include flog/static/js *.js
+
+
