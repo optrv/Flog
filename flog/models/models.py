@@ -3,33 +3,36 @@ import sqlite3
 from datetime import datetime
 from flask import g
 from flask_paginate import Pagination
-from flog.configs.conf import database, upload_folder, allowed_extensions, username, password, posts_per_page
+from flog.configs.conf import DATABASE, UPLOAD_FOLDER, ALLOWED_EXTENSIONS, USERNAME, PASSWORD, POSTS_PER_PAGE
 from flog.services.image_resizer.image_resizer import image_resizer
 from flog.services.mp3_decoder.mp3_decoder import mp3_decoder
 from werkzeug.utils import secure_filename
 
-posts_per_page = int(posts_per_page)
+posts_per_page = int(POSTS_PER_PAGE)
+
 
 def connect_db():
     """
     Connect with a database and use the sqlite3.Row-object
     """
-    row = sqlite3.connect(database)
+    row = sqlite3.connect(DATABASE)
     row.row_factory = sqlite3.Row
     return row
+
 
 def init_db():
     """
     Create the new database by schema.sql
     """
     db = get_db()
-    with open(os.path.dirname(database) + '/schema.sql', mode = 'r') as s:
-        db.cursor().executescript(s.read())
+    with open(os.path.dirname(DATABASE) + '/schema.sql', mode='r') as schema:
+        db.cursor().executescript(schema.read())
     db.commit()
+
 
 def get_db():
     """
-    Create the connection with the database
+    Opens a new database connection.
     """
     try:
         g.sqlite_db
@@ -38,23 +41,27 @@ def get_db():
     finally:
         return g.sqlite_db
 
+
 def check_db():
     """
     Check if db-file is exist
     """
-    if not os.path.exists(database):
+    if not os.path.exists(DATABASE):
         init_db()
+
 
 def get_from_db():
     """
-    Get the data from DB
+    Get the data from database
     """
     check_db()
     db = get_db()
-    cur = db.execute('SELECT date_time, title, text, filename, filesave FROM posts ORDER BY id DESC')
+    cur = db.execute(
+        'SELECT date_time, title, text, filename, filesave FROM posts ORDER BY id DESC')
     posts = cur.fetchall()
     db.close()
     return posts
+
 
 def add_to_db(date_time, title, text, filename, filesave):
     """
@@ -64,18 +71,20 @@ def add_to_db(date_time, title, text, filename, filesave):
         date_time = datetime.now().strftime("%Y/%m/%d %H:%M:%S")
     db = get_db()
     db.execute('INSERT INTO posts (date_time, title, text, filename, filesave) '
-               'VALUES (?, ?, ?, ?, ?)',[date_time, title, text, filename, filesave])
+               'VALUES (?, ?, ?, ?, ?)', [date_time, title, text, filename, filesave])
     db.commit()
     db.close()
 
-def save_file(files):
+
+def save_file_datetime(files):
     """
-    Save the file
+    Save the file with the time-hash and return datetime
     """
-    if files.filename.rsplit('.', 1)[1] in allowed_extensions:
+    if files.filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS:
         date_time = datetime.now()
         filename = secure_filename(files.filename)
-        hashname = date_time.strftime("%Y%m%d%H%M%S") + '.' + filename.rsplit('.', 1)[1]
+        hashname = date_time.strftime(
+            "%Y%m%d%H%M%S") + '.' + filename.rsplit('.', 1)[1]
         if filename.rsplit('.', 1)[1] != 'mp3':
             filesave = 'image_' + hashname
             subfolder = 'image/'
@@ -88,20 +97,25 @@ def save_file(files):
     else:
         return None, None, None
 
+
 def check_login(user_name, pass_word):
     """
     Check login/password
     """
-    if (user_name != username or pass_word != password):
+    if (user_name != USERNAME or pass_word != PASSWORD):
         return False
     else:
         return True
+
 
 def posts_page(page, posts):
     """
     Makes pagination of the posts
     """
-    pagination = Pagination(page = page, per_page = posts_per_page, total = len(posts))
+    pagination = Pagination(
+        page=page,
+        per_page=posts_per_page,
+        total=len(posts))
     i = (page - 1) * posts_per_page
     posts = posts[i:i + posts_per_page]
     return pagination, posts

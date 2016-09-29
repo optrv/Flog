@@ -1,16 +1,18 @@
 {% extends "index.html" %}
 {% block body %}
-<form action="{{ url_for('add_post') }}" method=post enctype=multipart/form-data>
+{% if session['logged_in'] %}
+    <form action="{{ url_for('add_post') }}" method=post enctype=multipart/form-data>
     <div class="form-group">
     <input class="form-control" placeholder="Input Title..." type=text name=title>
         <textarea class="form-control" placeholder="Input Text..." name=text type=text id="comment"></textarea>
-    {% if session['logged_in'] %}
     <input type=file name=filename></div>
-    {% else %}
-    <input type=file name=filename disabled></div>
-    {% endif %}
     <button type=submit class="btn btn-success">Post!</button>
-</form>
+    </form>
+{% else %}
+<div class="alert alert-info2">
+    <strong>Please, login to add the post!</strong>
+</div>
+{% endif %}
 {{ pagination.info }}
 {{ pagination.links }}
 {% for post in posts %}
